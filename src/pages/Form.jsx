@@ -1,9 +1,5 @@
 import Select from "react-dropdown-select";
-import {
-  collection,
-  getDocs,
-  addDoc,
-} from "firebase/firestore";
+import { collection, getDocs, addDoc } from "firebase/firestore";
 
 import { useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -13,10 +9,10 @@ import { auth, firestore } from "../../firebase.config";
 import { useState } from "react";
 import DateTimePicker from "react-datetime-picker";
 function Form() {
-    const navigate = useNavigate()
+  const navigate = useNavigate();
   const [doctor, setDoctor] = useState(null);
   const [user, loadingAuth, errorAuth] = useAuthState(auth);
-  const [datePicker,setDatePicker]=useState(null);
+  const [datePicker, setDatePicker] = useState(null);
   const [doctorCollection, loadingDoctor, errorDoctor] = useCollectionOnce(
     collection(firestore, "doctor"),
     {
@@ -55,7 +51,7 @@ function Form() {
             })}
             onChange={(doctor) => setDoctor(doctor[0].value)}
           />
-          <DateTimePicker onChange={setDatePicker} value={datePicker}/>
+          <DateTimePicker onChange={setDatePicker} value={datePicker} />
           {/* {doctorCollection && doctor && (
             <>
               {console.log(
@@ -65,8 +61,10 @@ function Form() {
               )}
             </>
           )} */}
-          <button disabled={datePicker == null || doctor == null}
-            onClick={async () => {console.log("send rdvs")
+          <button
+            disabled={datePicker == null || doctor == null}
+            onClick={async () => {
+              console.log("send rdvs");
               await addDoc(collection(firestore, "rdvs"), {
                 doctor: doctorCollection.docs.find(
                   (value) => value.id == doctor
@@ -74,7 +72,7 @@ function Form() {
                 patient: (
                   await getDocs(collection(firestore, "patient"))
                 ).docs.find((value) => value.id == auth.currentUser.uid).ref,
-                horaire: datePicker
+                horaire: datePicker,
               });
             }}
           >
