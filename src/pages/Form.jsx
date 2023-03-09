@@ -1,22 +1,37 @@
 import Select from "react-dropdown-select";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+} from "firebase/firestore";
+
+import { useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 import { useCollectionOnce } from "react-firebase-hooks/firestore";
 import { auth, firestore } from "../../firebase.config";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import DateTimePicker from "react-datetime-picker";
 function Form() {
+    const navigate = useNavigate()
   const [doctor, setDoctor] = useState(null);
   const [user, loadingAuth, errorAuth] = useAuthState(auth);
-  const [value, loadingDoctor, errorDoctor] = useCollectionOnce(
+  const [datePicker,setDatePicker]=useState(null);
+  const [doctorCollection, loadingDoctor, errorDoctor] = useCollectionOnce(
     collection(firestore, "doctor"),
     {
       snapshotListenOptions: { includeMetadataChanges: true },
     }
   );
+  //   const [rdvsCollection, loadingRdv, errorRdv] = useCollectionOnce(
+  //     collection(firestore, "rdvs"),
+  //     {
+  //       snapshotListenOptions: { includeMetadataChanges: true },
+  //     }
+  //   );
   //   const [doctorList, setDoctorList] = useState([]);
-  console.log(value, loadingDoctor, errorDoctor);
-  console.log(doctor);
+  console.log(doctorCollection, loadingDoctor, errorDoctor);
+  console.log(doctor, doctorCollection && doctorCollection.docs);
 
   //   useEffect(() => {
   //     async function fetchData() {
@@ -27,21 +42,46 @@ function Form() {
   //     fetchData();
   //   }, []);
 
-  const options = [{ value: 1, label: "test" }];
   return (
     <>
-      {!loadingAuth && user != null ? user.email : "Not auth"}{" "}
-      {
-        /* {!loadingAuth && value != null ? value.docs : ""} */
-        value && (
+      {!loadingAuth && user != null ? user.email : "Not auth"}
+      <button onClick={() => navigate("/rdvs")}>Voir rdvs</button>
+      {doctorCollection && (
+        <>
           <Select
-            options={value.docs.map((value) => {
+            options={doctorCollection.docs.map((value) => {
+              console.log(value);
               return { value: value.id, label: value.data().name };
             })}
-            onChange={(doctor) => setDoctor(doctor)}
+            onChange={(doctor) => setDoctor(doctor[0].value)}
           />
-        )
-      }
+          <DateTimePicker onChange={setDatePicker} value={datePicker}/>
+          {/* {doctorCollection && doctor && (
+            <>
+              {console.log(
+                rdvsCollection.docs
+                  .filter((value) => value.data().doctor.id == doctor)
+                  .map((value) => new Date(value.data().horaire.seconds * 1000))
+              )}
+            </>
+          )} */}
+          <button disabled={datePicker == null || doctor == null}
+            onClick={async () => {console.log("send rdvs")
+              await addDoc(collection(firestore, "rdvs"), {
+                doctor: doctorCollection.docs.find(
+                  (value) => value.id == doctor
+                ).ref,
+                patient: (
+                  await getDocs(collection(firestore, "patient"))
+                ).docs.find((value) => value.id == auth.currentUser.uid).ref,
+                horaire: datePicker
+              });
+            }}
+          >
+            Send
+          </button>
+        </>
+      )}
     </>
   );
 }

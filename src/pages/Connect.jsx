@@ -1,28 +1,47 @@
-import { useState } from "react";
-import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebase.config";
+import { useEffect, useState } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, firestore } from "../../firebase.config";
 import { useNavigate } from "react-router-dom";
-
-
+import { useAuthState } from "react-firebase-hooks/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 function Connect() {
   const [login, setLogin] = useState("juliancautela@gmail.com");
   const [password, setPassword] = useState("123456");
+
+  const [user, loadingAuth, errorAuth] = useAuthState(auth);
   const navigate = useNavigate();
-  const handleConnect = async function() {
+  const handleConnect = async function () {
     try {
       console.log(login, password);
       var credential = await signInWithEmailAndPassword(auth, login, password);
       console.log(credential);
-      navigate("/form")
+      
     } catch (e) {
+      
+      window.navigator?.vibrate?.(200);  
       console.log(`Failed with error code: ${e.code}`);
       console.log(e.message);
     }
-  }
+  };
   // onAuthStateChanged(auth,(currentUser)=>{
   //   console.log("auth changed " , currentUser);
   // });
+
+  useEffect(() => {
+    async function tryConnect(){
+    if (user) {
+      var patient = await getDoc(
+        doc(firestore, "patient", user.uid)
+      );
+      if (patient.exists()) {
+        navigate("/form");
+      } else {
+        console.log("not a patient");
+      }
+    }}
+    tryConnect();
+  }, [user]);
 
   return (
     <div>
