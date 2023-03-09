@@ -98,6 +98,11 @@ function Form() {
                 });
                 saveAs(blob, "event-schedule.ics");
               });
+              Notification.requestPermission((permission)=>{
+                if(permission === "granted"){
+                  new Notification("Rdv pris");
+                }
+              })
             }}
           >
             Send

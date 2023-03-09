@@ -30,7 +30,7 @@ function Rdvs() {
               horaires: new Date(value.data().horaire.seconds * 1000),
             };
           })
-      ).then((value) => setRdvs(value));
+      ).then((value) => setRdvs(value.sort((a,b)=> a.horaires.getTime()-b.horaires.getTime())));
     }
   }, [rdvsCollection]);
   return (
