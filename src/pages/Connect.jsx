@@ -16,10 +16,20 @@ function Connect() {
       console.log(login, password);
       var credential = await signInWithEmailAndPassword(auth, login, password);
       console.log(credential);
-      
+      if (credential.user) {
+        var patient = await getDoc(
+          doc(firestore, "patient", credential.user.uid)
+        );
+        if (patient.exists()) {
+          navigate("/form");
+        } else {
+          window.navigator?.vibrate?.(200);
+          console.log("not a patient");
+          auth.signOut();
+        }
+      }
     } catch (e) {
-      
-      window.navigator?.vibrate?.(200);  
+      window.navigator?.vibrate?.(200);
       console.log(`Failed with error code: ${e.code}`);
       console.log(e.message);
     }
@@ -28,20 +38,6 @@ function Connect() {
   //   console.log("auth changed " , currentUser);
   // });
 
-  useEffect(() => {
-    async function tryConnect(){
-    if (user) {
-      var patient = await getDoc(
-        doc(firestore, "patient", user.uid)
-      );
-      if (patient.exists()) {
-        navigate("/form");
-      } else {
-        console.log("not a patient");
-      }
-    }}
-    tryConnect();
-  }, [user]);
 
   return (
     <div>
@@ -64,7 +60,13 @@ function Connect() {
           }}
         />
       </div>
-      <button onClick={(_) => handleConnect()}>Connect</button>
+      <button
+        onClick={(_) => {
+          handleConnect();
+        }}
+      >
+        Connect
+      </button>
     </div>
   );
 }
