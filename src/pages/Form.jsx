@@ -94,7 +94,7 @@ function Form() {
               };
               ics.createEvent(event, (error, value) => {
                 const blob = new Blob([value], {
-                  type: "text/plain;charset=utf-8",
+                  type: "text/calendar;charset=utf-8",
                 });
                 saveAs(blob, "event-schedule.ics");
               });
